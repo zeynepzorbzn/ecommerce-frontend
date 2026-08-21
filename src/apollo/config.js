@@ -1,0 +1,1 @@
+export const FILE_SERVICE_URL = 'http://localhost:8001/api/v1';

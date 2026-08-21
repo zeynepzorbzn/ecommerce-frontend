@@ -5,7 +5,7 @@ function CategoryCard({ category, onClick }) {
             className="group flex aspect-square items-center justify-center bg-gray-100 transition hover:bg-gray-200"
         >
             <span className="text-lg font-medium transition-transform group-hover:scale-105">
-                {category}
+                {category.name}
             </span>
         </button>
     );

@@ -2,14 +2,11 @@ import { useEffect, useState } from "react";
 import CategoryCard from "../components/home/CategoryCard";
 import ProductCard from "../components/home/ProductCard";
 import CategorySection from "../components/home/CategorySection.jsx";
+import { Link } from "react-router-dom";
+import { useQuery } from "@apollo/client/react";
+import { GET_CATEGORIES_QUERY } from "../graphqls/queries/category";
 
 
-const categories = [
-    "Elektronik",
-    "Moda",
-    "Güzellik",
-    "Ev Dekorasyon",
-];
 
 const products = [
     {
@@ -39,6 +36,10 @@ const products = [
 ];
 
 function Home() {
+    const { loading: categoriesLoading, error: categoriesError, data: categoriesData } =
+        useQuery(GET_CATEGORIES_QUERY);
+
+    const categories = categoriesData?.getCategories ?? [];
     const [selectedCategory, setSelectedCategory] = useState(null);
     const filteredProducts = selectedCategory ? products.filter(
                 (product) => product.category === selectedCategory) : products;
@@ -66,9 +67,12 @@ function Home() {
                             Sevdiğiniz markaları ve ürünleri keşfedin.
                         </p>
 
-                        <button className="mt-9 bg-black px-9 py-4 text-sm font-medium text-white transition hover:bg-gray-800">
-                            Ürünleri Keşfedin
-                        </button>
+                        <Link
+                            to="/products"
+                            className="mt-8 inline-block bg-white px-8 py-3 text-sm font-medium text-black transition hover:bg-gray-200"
+                        >
+                            Ürünleri Keşfet
+                        </Link>
 
                     </div>
                 </div>
@@ -93,9 +97,12 @@ function Home() {
                                 Gelecek Ürünler
                             </h2>
                         </div>
-                        <button className="hidden text-sm underline underline-offset-4 md:block">
+                        <Link
+                            to="/products"
+                            className="hidden text-sm underline underline-offset-4 md:block"
+                        >
                             Hepsini Görüntüle
-                        </button>
+                        </Link>
                     </div>
 
                     <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-4">
@@ -124,9 +131,12 @@ function Home() {
                     <p className="mx-auto mt-4 max-w-lg text-sm leading-6 text-gray-400">
                         Yeni ürünler, koleksiyonlar ve fırsatlardan haberdar olun.
                     </p>
-                    <button className="mt-8 bg-white px-8 py-3 text-sm font-medium text-black transition hover:bg-gray-200">
+                    <Link
+                        to="/products"
+                        className="mt-8 bg-white px-8 py-3 text-sm font-medium text-black transition hover:bg-gray-200">
+
                         Ürünleri Keşfet
-                    </button>
+                    </Link>
                 </div>
             </section>
         </main>

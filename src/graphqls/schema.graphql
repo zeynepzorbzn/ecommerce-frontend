@@ -1,0 +1,269 @@
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+type Query {}
+type Mutation {}
+
+scalar Long
+scalar Date
+scalar DateTime
+scalar BigDecimal
+
+type LoginResponse {
+    accessToken: String!
+    refreshToken: String!
+}
+
+type RegisterResponse {
+    id: ID!
+    firstName: String!
+    lastName: String!
+    email: String!
+    phoneNumber: String!
+    roleName: RoleName!
+    accessToken: String!
+    refreshToken: String!
+}
+
+type RefreshResponse {
+    accessToken: String!
+}
+
+input LoginInput {
+    email: String!
+    password: String!
+}
+input RegisterInput {
+    firstName: String!
+    lastName: String!
+    email: String!
+    phoneNumber: String!
+    password: String!
+}
+input RefreshInput {
+    refreshToken: String!
+}
+
+extend type Mutation {
+    login(input: LoginInput!): LoginResponse
+    register(input: RegisterInput!): RegisterResponse!
+    refreshToken(input: RefreshInput!): RefreshResponse!
+}
+
+type UserResponse {
+    id: ID
+    firstName: String
+    lastName: String
+    email: String
+    birthDate: Date
+}
+enum RoleName {
+    USER
+    ADMIN
+    STORE_MANAGER
+}
+
+input UserInput {
+    firstName: String!
+    lastName: String!
+    email: String!
+    password: String!
+    birthDate: Date!
+    phoneNumber : String!
+    role: RoleName!
+}
+
+extend type Query {
+    users: [UserResponse]
+    userById(id: ID!): UserResponse
+}
+
+extend type Mutation {
+    createUser(input: UserInput!): UserResponse
+}
+extend type Mutation {
+    adminTest: String
+}
+
+type ProductResponse {
+    id: ID!
+    name: String!
+    description: String
+    price: Float!
+    gender: String
+    season: String
+    storeName: String
+    brandName: String
+    categoryName: String
+    variants: [ProductVariantResponse!]!
+}
+
+input ProductInput {
+    name: String!
+    description: String
+    price: Float!
+    gender: String
+    season: String
+    storeId: ID!
+    brandId: ID!
+    categoryId: ID!
+
+}
+
+extend type Query {
+    getProduct(id: ID!): ProductResponse
+    getProducts: [ProductResponse!]!
+}
+
+extend type Mutation {
+    createProduct(input: ProductInput!): ProductResponse
+}
+
+type ProductVariantResponse {
+    id: ID!
+    size: String!
+    stock: Int!
+    color: String!
+    productId: ID!
+    productName: String!
+}
+
+input ProductVariantInput {
+    productId: ID!
+    size: String!
+    stock: Int!
+    color: String!
+}
+
+extend type Query {
+    getProductVariants: [ProductVariantResponse!]!
+    getProductVariantById(id: ID!): ProductVariantResponse
+}
+
+extend type Mutation {
+    createProductVariant(input: ProductVariantInput!): ProductVariantResponse
+}
+
+type CategoryResponse {
+    id: ID
+    name: String
+}
+
+input CategoryInput {
+    name: String!
+}
+
+extend type Mutation {
+    createCategory(input: CategoryInput!) : CategoryResponse!
+}
+
+type BrandResponse {
+    id : ID!
+    name : String!
+}
+
+input BrandInput {
+    name: String!
+}
+
+extend type Mutation {
+    createBrand(input: BrandInput!) : BrandResponse!
+}
+
+type StoreResponse {
+    id: ID
+    name: String
+    email: String
+    phoneNumber: String
+    ownerName: String
+    city: String
+    district: String
+    street: String
+    postalCode: String
+}
+
+input StoreInput {
+    name: String!
+    email: String!
+    phoneNumber: String!
+    ownerId: ID!
+    city: String
+    district: String!
+    street: String!
+    postalCode: String!
+
+}
+
+extend type Mutation{
+    createStore(input: StoreInput!): StoreResponse
+}
+
+type CartResponse {
+    id: ID!
+    totalPrice: BigDecimal!
+    productCount: Int!
+    userId: ID!
+}
+
+input CartInput {
+    userId: ID!
+}
+
+extend type Query {
+    getCartByUserId(userId: ID!): CartResponse
+}
+
+extend type Mutation {
+    createCart(input: CartInput!): CartResponse!
+}
+
+type CartItemResponse {
+    id: ID!
+    quantity: Int!
+    totalPrice: BigDecimal!
+    productVariantId: ID!
+    productName: String!
+    size: String!
+    color: String!
+}
+
+input CartItemInput {
+    productVariantId: ID!
+    quantity: Int!
+}
+
+extend type Mutation{
+    addToCart(
+        cartId: ID!
+        input: CartItemInput!
+    ): CartItemResponse!
+}
+
+type OrderItemResponse {
+    id: ID!
+    quantity: Int!
+    unitPrice: BigDecimal!
+    productVariantId: ID!
+    productName: String!
+    size: String!
+    color: String!
+}
+
+type OrderResponse {
+    id: ID!
+    code: String!
+    totalPrice: BigDecimal!
+    productCount: Int!
+    userId: ID
+    orderItems: [OrderItemResponse!]!
+}
+
+input OrderInput {
+    cartId: ID!
+}
+
+extend type Mutation {
+    createOrder(input: OrderInput!): OrderResponse!
+}

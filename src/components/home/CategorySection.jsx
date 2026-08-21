@@ -26,7 +26,7 @@ function CategorySection({ categories, onCategorySelect }) {
 
                 {categories.map((category) => (
                     <CategoryCard
-                        key={category}
+                        key={category.id}
                         category={category}
                         onClick={onCategorySelect}
                     />

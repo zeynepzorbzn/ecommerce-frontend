@@ -9,7 +9,7 @@ function Account() {
     );
 
     if (isAuthenticated) {
-        return <Navigate to="/account" replace />;
+        return <Navigate to="/myAccount" replace />;
     }
 
     return (

@@ -9,7 +9,9 @@ import Cart from "./pages/Cart"
 import Account from "./pages/Account";
 import MyAccount from "./pages/MyAccount";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
-
+//import Orders from "./pages/Orders";
+import ProductDetail from "./pages/ProductDetail";
+import Categories from "./pages/Categories";
 
 
 function App() {
@@ -21,11 +23,21 @@ function App() {
           <Routes>
              <Route path = "/" element ={<Home />}/>
               <Route path = "/products" element ={<Products />}/>
+              <Route path="/products/:id" element={<ProductDetail />} />
+
               <Route path = "/login" element ={<Login />}/>
               <Route path = "/register" element ={<Register />}/>
+
               <Route path = "/cart" element ={<Cart/>}/>
+
               <Route path="/account" element={<Account />} />
               <Route path="/myAccount" element={<ProtectedRoute><MyAccount /></ProtectedRoute> }/>
+
+              <Route path = "/categories" element ={<Categories/>}/>
+
+
+
+              {/*<Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>}/>*/}
           </Routes>
           <Footer />
 

@@ -22,10 +22,11 @@ function Header() {
 
                 {/* Navigation */}
                 <nav className="hidden items-center gap-8 text-sm md:flex">
-                    <a href="#"
-                       className="transition hover:text-gray-500">
-                        En Yeniler
-                    </a>
+                    <Link
+                        to="/products"
+                        className="transition hover:text-gray-500"
+                    > En Yeniler
+                    </Link>
                     <a
                         href="#"
                         className="transition hover:text-gray-500"
