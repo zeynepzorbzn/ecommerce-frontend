@@ -5,6 +5,7 @@ export const LOGIN_MUTATION = gql`
         login(input: $input) {
             accessToken
             refreshToken
+            roleName
         }
     }
 `;

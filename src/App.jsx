@@ -9,7 +9,8 @@ import Cart from "./pages/Cart"
 import Account from "./pages/Account";
 import MyAccount from "./pages/MyAccount";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
-//import Orders from "./pages/Orders";
+import Orders from "./pages/Orders";
+import OrderDetail from "./pages/OrderDetail";
 import ProductDetail from "./pages/ProductDetail";
 import Categories from "./pages/Categories";
 import Checkout from "./pages/Checkout";
@@ -37,11 +38,9 @@ function App() {
 
               <Route path = "/categories" element ={<Categories/>}/>
               <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>}/>
-              <Route path="/payment-methods" element={<ProtectedRoute><PaymentPage /></ProtectedRoute>
-                  }
-              />
-
-              {/*<Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>}/>*/}
+              <Route path="/payment-methods" element={<ProtectedRoute><PaymentPage /></ProtectedRoute>}/>
+              <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>}/>
+              <Route path="/orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>}/>
           </Routes>
           <Footer />
 

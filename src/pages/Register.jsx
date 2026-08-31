@@ -44,6 +44,7 @@ function Register() {
                 login({
                     accessToken: data.register.accessToken,
                     refreshToken: data.register.refreshToken,
+                    roleName: data.roleName,
                 })
             );
             navigate("/myAccount");

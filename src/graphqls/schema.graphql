@@ -14,6 +14,7 @@ scalar BigDecimal
 type LoginResponse {
     accessToken: String!
     refreshToken: String!
+    roleName: RoleName!
 }
 
 type RegisterResponse {

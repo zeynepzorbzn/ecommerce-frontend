@@ -31,6 +31,7 @@ function Login() {
                 login({
                     accessToken: data.login.accessToken,
                     refreshToken: data.login.refreshToken,
+                    roleName: data.login.roleName,
                 })
             );
             navigate("/MyAccount");
