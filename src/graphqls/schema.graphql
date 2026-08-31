@@ -98,6 +98,7 @@ type ProductResponse {
     brandName: String
     categoryName: String
     variants: [ProductVariantResponse!]!
+    images: [ProductImageResponse!]!
 }
 
 input ProductInput {
@@ -115,6 +116,7 @@ input ProductInput {
 extend type Query {
     getProduct(id: ID!): ProductResponse
     getProducts: [ProductResponse!]!
+    getProductsByCategory(categoryId: ID!): [ProductResponse!]!
 }
 
 extend type Mutation {
@@ -205,6 +207,8 @@ type CartResponse {
     totalPrice: BigDecimal!
     productCount: Int!
     userId: ID!
+    items: [CartItemResponse!]!
+
 }
 
 input CartInput {
@@ -212,7 +216,7 @@ input CartInput {
 }
 
 extend type Query {
-    getCartByUserId(userId: ID!): CartResponse
+    getMyCart: CartResponse
 }
 
 extend type Mutation {
@@ -223,10 +227,12 @@ type CartItemResponse {
     id: ID!
     quantity: Int!
     totalPrice: BigDecimal!
+    productId: ID!
     productVariantId: ID!
     productName: String!
     size: String!
     color: String!
+    imageToken: String
 }
 
 input CartItemInput {
@@ -235,9 +241,7 @@ input CartItemInput {
 }
 
 extend type Mutation{
-    addToCart(
-        cartId: ID!
-        input: CartItemInput!
+    addToCart(input: CartItemInput!
     ): CartItemResponse!
 }
 
@@ -257,6 +261,8 @@ type OrderResponse {
     totalPrice: BigDecimal!
     productCount: Int!
     userId: ID
+    addressId: ID
+    paymentMethodId: ID
     orderItems: [OrderItemResponse!]!
 }
 
@@ -266,4 +272,9 @@ input OrderInput {
 
 extend type Mutation {
     createOrder(input: OrderInput!): OrderResponse!
+}
+type ProductImageResponse {
+    id: ID!
+    imageToken: String!
+    productId: ID!
 }

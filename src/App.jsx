@@ -12,6 +12,8 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 //import Orders from "./pages/Orders";
 import ProductDetail from "./pages/ProductDetail";
 import Categories from "./pages/Categories";
+import Checkout from "./pages/Checkout";
+import PaymentPage from "./pages/PaymentPage";
 
 
 function App() {
@@ -28,14 +30,16 @@ function App() {
               <Route path = "/login" element ={<Login />}/>
               <Route path = "/register" element ={<Register />}/>
 
-              <Route path = "/cart" element ={<Cart/>}/>
+              <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>}/>
 
               <Route path="/account" element={<Account />} />
               <Route path="/myAccount" element={<ProtectedRoute><MyAccount /></ProtectedRoute> }/>
 
               <Route path = "/categories" element ={<Categories/>}/>
-
-
+              <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>}/>
+              <Route path="/payment-methods" element={<ProtectedRoute><PaymentPage /></ProtectedRoute>
+                  }
+              />
 
               {/*<Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>}/>*/}
           </Routes>

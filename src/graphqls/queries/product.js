@@ -20,6 +20,11 @@ export const GET_PRODUCTS_QUERY = gql`
                 productId
                 productName
             }
+            images {
+                id
+                imageToken
+                productId
+            }
         }
     }
 `;
@@ -42,6 +47,11 @@ export const GET_PRODUCT_QUERY = gql`
                 color
                 productId
                 productName
+            }
+            images {
+                id
+                imageToken
+                productId
             }
         }
     }
@@ -66,6 +76,11 @@ export const GET_PRODUCTS_BY_CATEGORY_QUERY = gql`
                 color
                 productId
                 productName
+            }
+            images {
+                id
+                imageToken
+                productId
             }
         }
     }

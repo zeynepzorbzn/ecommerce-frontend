@@ -33,12 +33,11 @@ function Header() {
                     >
                         Mağazalar
                     </a>
-                    <a
-                        href="#"
+                    <Link
+                        to="/categories"
                         className="transition hover:text-gray-500"
-                    >
-                        Kategoriler
-                    </a>
+                    >Kategoriler
+                    </Link>
                     <a
                         href="#"
                         className="transition hover:text-gray-500"
