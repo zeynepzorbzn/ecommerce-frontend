@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { clearProductImageCache } from "../../utils/image.js";
 
 const savedAccessToken = localStorage.getItem("accessToken");
 const savedRefreshToken = localStorage.getItem("refreshToken");
@@ -31,6 +32,8 @@ const authSlice = createSlice({name: "auth",
         },
 
         logout: (state) => {
+
+            clearProductImageCache();
 
             state.accessToken = null;
             state.refreshToken = null;

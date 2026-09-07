@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const FILE_SERVICE_URL = "http://localhost:8001/api/v1";
+const FILE_SERVICE_URL =
+    import.meta.env.VITE_FILE_SERVICE_URL ||
+    "http://localhost:8001/api/v1";
 
 export const uploadFile = async (file) => {
     const token = localStorage.getItem("accessToken");

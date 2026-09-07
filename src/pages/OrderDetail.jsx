@@ -1,17 +1,70 @@
+import { useEffect, useState } from "react";
 import { useQuery } from "@apollo/client/react";
 import { useNavigate, useParams } from "react-router-dom";
+
 import { GET_MY_ORDERS_QUERY } from "../graphqls/queries/order";
+import { getProductImage } from "../utils/image.js";
 
 function OrderDetail() {
-
     const { id } = useParams();
     const navigate = useNavigate();
+
+    const [imageUrls, setImageUrls] = useState({});
 
     const {
         data,
         loading,
         error,
     } = useQuery(GET_MY_ORDERS_QUERY);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const loadImages = async () => {
+            if (!data?.getMyOrders) return;
+
+            const orders = data.getMyOrders;
+
+            const currentOrder = orders.find(
+                (item) => String(item.id) === String(id)
+            );
+
+            if (!currentOrder?.orderItems) return;
+
+            const token = localStorage.getItem("accessToken");
+
+            const urls = {};
+
+            for (const item of currentOrder.orderItems) {
+                if (!item.imageToken) continue;
+
+                try {
+                    const imageUrl = await getProductImage(
+                        item.imageToken,
+                        token
+                    );
+
+                    urls[item.id] = imageUrl;
+                } catch (error) {
+                    console.error(
+                        "ORDER IMAGE ERROR:",
+                        item.imageToken,
+                        error
+                    );
+                }
+            }
+
+            if (!cancelled) {
+                setImageUrls(urls);
+            }
+        };
+
+        loadImages();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [data, id]);
 
     if (loading) {
         return (
@@ -22,12 +75,10 @@ function OrderDetail() {
     }
 
     if (error) {
-
         console.error("ORDER DETAIL ERROR:", error);
 
         return (
             <main className="mx-auto max-w-5xl px-6 py-20">
-
                 <h1 className="text-3xl font-semibold">
                     Sipariş Detayı
                 </h1>
@@ -35,7 +86,6 @@ function OrderDetail() {
                 <p className="mt-6 text-red-500">
                     Sipariş bilgileri yüklenirken bir hata oluştu.
                 </p>
-
             </main>
         );
     }
@@ -49,7 +99,6 @@ function OrderDetail() {
     if (!order) {
         return (
             <main className="mx-auto max-w-5xl px-6 py-20">
-
                 <h1 className="text-3xl font-semibold">
                     Sipariş Bulunamadı
                 </h1>
@@ -65,7 +114,6 @@ function OrderDetail() {
                 >
                     Siparişlerime Dön
                 </button>
-
             </main>
         );
     }
@@ -78,7 +126,6 @@ function OrderDetail() {
             <div className="flex items-center justify-between">
 
                 <div>
-
                     <h1 className="text-3xl font-semibold">
                         Sipariş Detayı
                     </h1>
@@ -86,7 +133,6 @@ function OrderDetail() {
                     <p className="mt-2 text-gray-500">
                         Sipariş No: {order.code}
                     </p>
-
                 </div>
 
                 <button
@@ -107,7 +153,6 @@ function OrderDetail() {
                 <div className="grid gap-6 md:grid-cols-3">
 
                     <div>
-
                         <p className="text-sm text-gray-500">
                             Sipariş Numarası
                         </p>
@@ -115,11 +160,9 @@ function OrderDetail() {
                         <p className="mt-1 font-medium">
                             {order.code}
                         </p>
-
                     </div>
 
                     <div>
-
                         <p className="text-sm text-gray-500">
                             Ürün Sayısı
                         </p>
@@ -127,11 +170,9 @@ function OrderDetail() {
                         <p className="mt-1 font-medium">
                             {order.productCount}
                         </p>
-
                     </div>
 
                     <div>
-
                         <p className="text-sm text-gray-500">
                             Toplam
                         </p>
@@ -139,7 +180,6 @@ function OrderDetail() {
                         <p className="mt-1 font-semibold">
                             {order.totalPrice} TL
                         </p>
-
                     </div>
 
                 </div>
@@ -164,21 +204,41 @@ function OrderDetail() {
                             className="flex items-center justify-between border-b pb-5"
                         >
 
-                            <div>
+                            <div className="flex items-center gap-5">
 
-                                <p className="font-medium">
-                                    {item.productName}
-                                </p>
+                                {/* PRODUCT IMAGE */}
 
-                                <p className="mt-1 text-sm text-gray-500">
-                                    {item.color} / {item.size}
-                                </p>
+                                {imageUrls[item.id] ? (
+                                    <img
+                                        src={imageUrls[item.id]}
+                                        alt={item.productName}
+                                        className="h-24 w-24 rounded object-cover"
+                                    />
+                                ) : (
+                                    <div className="h-24 w-24 rounded bg-gray-100" />
+                                )}
 
-                                <p className="mt-1 text-sm text-gray-500">
-                                    Adet: {item.quantity}
-                                </p>
+                                {/* PRODUCT INFO */}
+
+                                <div>
+
+                                    <p className="font-medium">
+                                        {item.productName}
+                                    </p>
+
+                                    <p className="mt-1 text-sm text-gray-500">
+                                        {item.color} / {item.size}
+                                    </p>
+
+                                    <p className="mt-1 text-sm text-gray-500">
+                                        Adet: {item.quantity}
+                                    </p>
+
+                                </div>
 
                             </div>
+
+                            {/* PRICE */}
 
                             <div className="text-right">
 

@@ -57,16 +57,6 @@ function Cart() {
 
     }, [cart, accessToken]);
 
-    useEffect(() => {
-        return () => {
-            Object.values(imageUrls).forEach((url) => {
-                if (url) {
-                    URL.revokeObjectURL(url);
-                }
-            });
-        };
-    }, [imageUrls]);
-
     const handleQuantityChange = async (item, newQuantity) => {
 
         if (newQuantity < 1) {

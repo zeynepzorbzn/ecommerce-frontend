@@ -18,6 +18,7 @@ export const GET_MY_ORDERS_QUERY = gql`
                 productName
                 size
                 color
+                imageToken
             }
         }
     }

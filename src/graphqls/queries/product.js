@@ -12,6 +12,7 @@ export const GET_PRODUCTS_QUERY = gql`
             storeName
             brandName
             categoryName
+
             variants {
                 id
                 size
@@ -19,11 +20,20 @@ export const GET_PRODUCTS_QUERY = gql`
                 color
                 productId
                 productName
+
+                images {
+                    id
+                    imageToken
+                    productId
+                    variantId
+                }
             }
+
             images {
                 id
                 imageToken
                 productId
+                variantId
             }
         }
     }
@@ -40,6 +50,7 @@ export const GET_PRODUCT_QUERY = gql`
             storeName
             brandName
             categoryName
+
             variants {
                 id
                 size
@@ -47,11 +58,20 @@ export const GET_PRODUCT_QUERY = gql`
                 color
                 productId
                 productName
+
+                images {
+                    id
+                    imageToken
+                    productId
+                    variantId
+                }
             }
+
             images {
                 id
                 imageToken
                 productId
+                variantId
             }
         }
     }
@@ -81,7 +101,81 @@ export const GET_PRODUCTS_BY_CATEGORY_QUERY = gql`
                 id
                 imageToken
                 productId
+                variantId
             }
         }
     }
 `;
+
+export const GET_MY_STORE_PRODUCTS_QUERY = gql`
+    query GetMyStoreProducts {
+        getMyStoreProducts {
+            id
+            name
+            description
+            price
+            gender
+            season
+            storeName
+            brandName
+            categoryName
+            variants {
+                id
+                size
+                stock
+                color
+                productId
+                productName
+            }
+            images {
+                id
+                imageToken
+                productId
+                variantId
+                
+            }
+        }
+    }
+`;
+export const SEARCH_PRODUCTS_QUERY = gql`
+    query SearchProducts($query: String!, $categoryId: ID) {
+        searchProducts(
+            query: $query
+            categoryId: $categoryId
+        ) {
+            id
+            name
+            description
+            price
+            gender
+            season
+            storeName
+            brandName
+            categoryName
+
+            variants {
+                id
+                size
+                stock
+                color
+                productId
+                productName
+
+                images {
+                    id
+                    imageToken
+                    productId
+                    variantId
+                }
+            }
+
+            images {
+                id
+                imageToken
+                productId
+                variantId
+            }
+        }
+    }
+`;
+

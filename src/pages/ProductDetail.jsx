@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@apollo/client/react";
 import { useSelector } from "react-redux";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { getProductImage } from "../utils/image";
 
@@ -24,7 +25,6 @@ function ProductDetail() {
 
     const [selectedVariantId, setSelectedVariantId] = useState(null);
     const [quantity, setQuantity] = useState(1);
-
     const [selectedImage, setSelectedImage] = useState(null);
 
     /*
@@ -37,11 +37,9 @@ function ProductDetail() {
      */
     const [imageUrls, setImageUrls] = useState({});
 
+
     /*
      * Ürünü Java Backend'den GraphQL ile alıyoruz.
-     *
-     * Burada resmin kendisi gelmez.
-     * Sadece imageToken gelir.
      */
     const {
         loading,
@@ -53,99 +51,262 @@ function ProductDetail() {
         }
     });
 
+
     const [addToCart, { loading: addingToCart }] =
         useMutation(ADD_TO_CART_MUTATION);
 
+
     const product = data?.getProduct;
 
+
     /*
-     * Ürün geldiğinde ilk resmi seç.
+     * =========================================================
+     * ÜRÜN AÇILDIĞINDA İLK VARYANTI OTOMATİK SEÇ
+     * =========================================================
+     *
+     * Ürünün varyantları varsa ilk stokta olan varyant seçilir.
+     *
+     * Örneğin:
+     *
+     * 36 → stok 0
+     * 37 → stok 5
+     * 38 → stok 10
+     *
+     * otomatik olarak 37 seçilir.
+     *
+     * Ürünün hiç varyantı yoksa selectedVariantId null kalır.
      */
     useEffect(() => {
 
-        if (product?.images?.length > 0) {
-            setSelectedImage(product.images[0]);
+        if (!product) {
+            return;
+        }
+
+        const variants = product.variants ?? [];
+
+        if (variants.length === 0) {
+            setSelectedVariantId(null);
+            return;
+        }
+
+        const firstAvailableVariant =
+            variants.find(
+                (variant) => Number(variant.stock) > 0
+            ) ?? variants[0];
+
+        setSelectedVariantId(
+            firstAvailableVariant.id
+        );
+
+    }, [product?.id]);
+
+
+    /*
+     * =========================================================
+     * SEÇİLEN VARYANTI BUL
+     * =========================================================
+     */
+    const selectedVariant = product?.variants?.find(
+        (variant) =>
+            Number(variant.id) === Number(selectedVariantId)
+    );
+
+
+    /*
+     * =========================================================
+     * GALERİDE GÖSTERİLECEK FOTOĞRAFLAR
+     * =========================================================
+     *
+     * Varyant seçilmişse:
+     *      → sadece o varyantın fotoğrafları
+     *
+     * Varyant seçilmemişse:
+     *      → ürünün genel fotoğrafları
+     *
+     * Ürünün hiç varyantı yoksa da:
+     *      → ürünün genel fotoğrafları
+     */
+    const galleryImages =
+        selectedVariantId && selectedVariant
+            ? selectedVariant.images ?? []
+            : product?.images ?? [];
+
+
+    /*
+     * =========================================================
+     * VARYANT / ÜRÜN DEĞİŞİNCE İLK FOTOĞRAFI SEÇ
+     * =========================================================
+     *
+     * Burada galleryImages dependency olarak kullanılmıyor.
+     *
+     * Çünkü galleryImages her render'da yeni bir array
+     * oluşturabilir ve bu da Maximum update depth hatasına
+     * neden olabilir.
+     */
+    useEffect(() => {
+
+        if (!product) {
+            return;
+        }
+
+        const images =
+            selectedVariantId && selectedVariant
+                ? selectedVariant.images ?? []
+                : product.images ?? [];
+
+        if (images.length > 0) {
+            setSelectedImage(images[0]);
         } else {
             setSelectedImage(null);
         }
 
-    }, [product]);
+    }, [
+        product?.id,
+        selectedVariantId
+    ]);
+
 
     /*
-     * File Service'den ürün resimlerini getir.
+     * =========================================================
+     * GÖRSEL TOKENLARININ STABİL ANAHTARI
+     * =========================================================
      *
-     * ÖNEMLİ:
+     * galleryImages array'i render'larda yeniden oluşabileceği
+     * için doğrudan dependency olarak kullanmıyoruz.
      *
-     * Burada Java API kullanılmıyor.
-     *
-     * React
-     *   ↓
-     * File Service
-     *   ↓
-     * MinIO
-     *
-     * şeklinde çalışıyor.
+     * Bunun yerine fotoğraf tokenlarından stabil bir string
+     * oluşturuyoruz.
      */
+    const galleryImageTokens = galleryImages
+        .map((image) => image?.imageToken)
+        .filter(Boolean)
+        .join("|");
+
+
+    /*
+     * =========================================================
+     * FILE SERVICE'DEN GÖRSELLERİ YÜKLE
+     * =========================================================
+     *
+     * İlk fotoğraf önce yüklenir.
+     *
+     * Böylece kullanıcı bütün fotoğrafların yüklenmesini
+     * beklemeden ilk fotoğrafı görebilir.
+     *
+     * Diğer fotoğraflar paralel olarak yüklenir.
+     */
+
     useEffect(() => {
 
-        if (!product?.images?.length || !accessToken) {
+        const images =
+            selectedVariantId && selectedVariant
+                ? selectedVariant.images ?? []
+                : product?.images ?? [];
+
+
+        if (
+            !images.length ||
+            !accessToken
+        ) {
+
+            setImageUrls({});
+
             return;
         }
 
+
         let cancelled = false;
+
+
 
         const loadImages = async () => {
 
-            const urls = {};
-
-            for (const image of product.images) {
-
-                if (!image?.imageToken) {
-                    continue;
-                }
-
-                const imageUrl = await getProductImage(
-                    image.imageToken,
-                    accessToken
+            const validImages =
+                images.filter(
+                    (image) =>
+                        image?.imageToken
                 );
 
-                if (imageUrl) {
-                    urls[image.imageToken] = imageUrl;
+
+            if (!validImages.length) {
+
+                if (!cancelled) {
+                    setImageUrls({});
                 }
+
+                return;
             }
 
-            if (!cancelled) {
-                setImageUrls(urls);
+
+            /*
+             * -----------------------------------------------------
+             * Bütün görseller
+             * -----------------------------------------------------
+             */
+            const results =
+                await Promise.all(
+                    validImages.map(
+                        async (image) => {
+
+                            const url =
+                                await getProductImage(
+                                    image.imageToken,
+                                    accessToken
+                                );
+
+                            return {
+                                token:
+                                image.imageToken,
+                                url
+                            };
+                        }
+                    )
+                );
+
+
+            if (cancelled) {
+                return;
             }
+
+
+            const urls = {};
+
+
+            results.forEach(
+                ({ token, url }) => {
+
+                    if (url) {
+
+                        urls[token] = url;
+                    }
+
+                }
+            );
+
+
+            setImageUrls(urls);
         };
+
 
         loadImages();
 
-        /*
-         * Component kapanırsa oluşturulan blob URL'lerini temizle.
-         */
+
         return () => {
-
             cancelled = true;
-
-            setImageUrls((currentUrls) => {
-
-                Object.values(currentUrls).forEach((url) => {
-
-                    if (url) {
-                        URL.revokeObjectURL(url);
-                    }
-
-                });
-
-                return {};
-            });
         };
 
-    }, [product, accessToken]);
+
+    }, [
+        product?.id,
+        selectedVariantId,
+        galleryImageTokens,
+        accessToken
+    ]);
 
     /*
-     * Loading
+     * =========================================================
+     * LOADING
+     * =========================================================
      */
     if (loading) {
 
@@ -156,12 +317,18 @@ function ProductDetail() {
         );
     }
 
+
     /*
-     * GraphQL error
+     * =========================================================
+     * GRAPHQL ERROR
+     * =========================================================
      */
     if (error) {
 
-        console.error("GET PRODUCT ERROR:", error);
+        console.error(
+            "GET PRODUCT ERROR:",
+            error
+        );
 
         return (
             <main className="mx-auto max-w-7xl px-6 py-20">
@@ -174,8 +341,11 @@ function ProductDetail() {
         );
     }
 
+
     /*
-     * Ürün bulunamadı
+     * =========================================================
+     * ÜRÜN BULUNAMADI
+     * =========================================================
      */
     if (!product) {
 
@@ -190,8 +360,11 @@ function ProductDetail() {
         );
     }
 
+
     /*
-     * Sepete ekleme
+     * =========================================================
+     * SEPETE EKLEME
+     * =========================================================
      */
     const handleAddToCart = async () => {
 
@@ -200,34 +373,40 @@ function ProductDetail() {
             return;
         }
 
+
         if (!selectedVariantId) {
 
             alert(
-                "Lütfen bir ürün varyantı seçin."
+                "Lütfen bir ürün seçeneği seçin."
             );
 
             return;
         }
+
 
         try {
 
             const result = await addToCart({
                 variables: {
                     input: {
-                        productVariantId: selectedVariantId,
+                        productVariantId:
+                        selectedVariantId,
                         quantity: quantity
                     }
                 }
             });
+
 
             console.log(
                 "Sepete eklendi:",
                 result.data
             );
 
+
             alert(
                 "Ürün sepete eklendi."
             );
+
 
         } catch (error) {
 
@@ -236,6 +415,7 @@ function ProductDetail() {
                 error
             );
 
+
             alert(
                 error.message ||
                 "Ürün sepete eklenirken bir hata oluştu."
@@ -243,42 +423,161 @@ function ProductDetail() {
         }
     };
 
+
     /*
-     * Seçili resmin URL'i.
+     * =========================================================
+     * SEÇİLİ RESMİN URL'İ
+     * =========================================================
      */
     const selectedImageUrl =
         selectedImage?.imageToken
             ? imageUrls[selectedImage.imageToken]
             : null;
 
+
+    /*
+     * =========================================================
+     * GALERİDEKİ MEVCUT FOTOĞRAFIN INDEX'İ
+     * =========================================================
+     */
+    const currentImageIndex =
+        selectedImage
+            ? galleryImages.findIndex(
+                (image) =>
+                    image.id === selectedImage.id
+            )
+            : -1;
+
+
+    /*
+     * =========================================================
+     * ÖNCEKİ FOTOĞRAF
+     * =========================================================
+     */
+    const handlePreviousImage = () => {
+
+        if (galleryImages.length === 0) {
+            return;
+        }
+
+
+        const previousIndex =
+            currentImageIndex <= 0
+                ? galleryImages.length - 1
+                : currentImageIndex - 1;
+
+
+        setSelectedImage(
+            galleryImages[previousIndex]
+        );
+    };
+
+
+    /*
+     * =========================================================
+     * SONRAKİ FOTOĞRAF
+     * =========================================================
+     */
+    const handleNextImage = () => {
+
+        if (galleryImages.length === 0) {
+            return;
+        }
+
+
+        const nextIndex =
+            currentImageIndex >= galleryImages.length - 1 ||
+            currentImageIndex === -1
+                ? 0
+                : currentImageIndex + 1;
+
+
+        setSelectedImage(
+            galleryImages[nextIndex]
+        );
+    };
+
+
     return (
         <main className="mx-auto max-w-7xl px-6 py-20">
 
             <div className="grid gap-12 md:grid-cols-2">
 
-                {/* =========================
+
+                {/* =================================================
                     PRODUCT IMAGES
-                ========================== */}
+                ================================================== */}
 
                 <div>
 
                     {/* Büyük resim */}
 
-                    <div className="aspect-[4/5] overflow-hidden bg-gray-200">
+                    <div className="relative aspect-[4/5] overflow-hidden bg-gray-200">
+
+
+                        {/* =================================================
+                            SOL OK
+                        ================================================== */}
+
+                        {galleryImages.length > 1 && (
+
+                            <button
+                                type="button"
+                                onClick={
+                                    handlePreviousImage
+                                }
+                                className="absolute left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow-md transition hover:bg-black hover:text-white"
+                                aria-label="Önceki fotoğraf"
+                            >
+
+                                <ChevronLeft size={20} />
+
+                            </button>
+
+                        )}
+
+
+                        {/* =================================================
+                            SAĞ OK
+                        ================================================== */}
+
+                        {galleryImages.length > 1 && (
+
+                            <button
+                                type="button"
+                                onClick={
+                                    handleNextImage
+                                }
+                                className="absolute right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow-md transition hover:bg-black hover:text-white"
+                                aria-label="Sonraki fotoğraf"
+                            >
+
+                                <ChevronRight size={20} />
+
+                            </button>
+
+                        )}
+
+
+                        {/* =================================================
+                            BÜYÜK FOTOĞRAF
+                        ================================================== */}
 
                         {selectedImageUrl ? (
 
                             <img
                                 src={selectedImageUrl}
                                 alt={product.name}
-                                className="h-full w-full object-cover"
+                                className="h-full w-full object-contain"
                             />
 
                         ) : (
 
                             <div className="flex h-full items-center justify-center text-gray-400">
 
-                                Ürün resmi yükleniyor...
+                                {galleryImages.length > 0
+                                    ? "Ürün resmi yükleniyor..."
+                                    : "Bu seçenek için fotoğraf bulunmuyor."}
 
                             </div>
 
@@ -287,50 +586,64 @@ function ProductDetail() {
                     </div>
 
 
-                    {/* Küçük resimler */}
+                    {/* =================================================
+                        KÜÇÜK RESİMLER
+                    ================================================== */}
 
-                    {product.images?.length > 0 && (
+                    {galleryImages.length > 0 && (
 
                         <div className="mt-4 flex gap-3 overflow-x-auto">
 
-                            {product.images.map((image) => {
+                            {galleryImages.map(
+                                (image) => {
 
-                                const imageUrl =
-                                    imageUrls[image.imageToken];
+                                    const imageUrl =
+                                        imageUrls[
+                                            image.imageToken
+                                            ];
 
-                                return (
-                                    <button
-                                        key={image.id}
-                                        type="button"
-                                        onClick={() =>
-                                            setSelectedImage(image)
-                                        }
-                                        className={`h-20 w-20 shrink-0 overflow-hidden border-2 ${
-                                            selectedImage?.id === image.id
-                                                ? "border-black"
-                                                : "border-transparent"
-                                        }`}
-                                    >
 
-                                        {imageUrl ? (
+                                    return (
 
-                                            <img
-                                                src={imageUrl}
-                                                alt={product.name}
-                                                className="h-full w-full object-cover"
-                                            />
+                                        <button
+                                            key={image.id}
+                                            type="button"
+                                            onClick={() =>
+                                                setSelectedImage(
+                                                    image
+                                                )
+                                            }
+                                            className={`h-20 w-20 shrink-0 overflow-hidden border-2 ${
+                                                selectedImage?.id ===
+                                                image.id
+                                                    ? "border-black"
+                                                    : "border-transparent"
+                                            }`}
+                                        >
 
-                                        ) : (
+                                            {imageUrl ? (
 
-                                            <div className="flex h-full w-full items-center justify-center bg-gray-100 text-xs text-gray-400">
-                                                ...
-                                            </div>
+                                                <img
+                                                    src={imageUrl}
+                                                    alt={
+                                                        product.name
+                                                    }
+                                                    className="h-full w-full object-contain"
+                                                />
 
-                                        )}
+                                            ) : (
 
-                                    </button>
-                                );
-                            })}
+                                                <div className="flex h-full w-full items-center justify-center bg-gray-100 text-xs text-gray-400">
+                                                    ...
+                                                </div>
+
+                                            )}
+
+                                        </button>
+
+                                    );
+                                }
+                            )}
 
                         </div>
 
@@ -339,9 +652,9 @@ function ProductDetail() {
                 </div>
 
 
-                {/* =========================
+                {/* =================================================
                     PRODUCT INFORMATION
-                ========================== */}
+                ================================================== */}
 
                 <div>
 
@@ -349,13 +662,39 @@ function ProductDetail() {
                         {product.categoryName}
                     </p>
 
+
                     <h1 className="mt-2 text-4xl font-semibold">
-                        {product.name}
+
+                        {product.brandName && (
+
+                            <span className="font-bold text-gray-950">
+
+                                {product.brandName}
+                                {" "}
+
+                            </span>
+
+                        )}
+
+                        <span className="text-gray-700">
+                            {product.name}
+                        </span>
+
                     </h1>
 
+
                     <p className="mt-6 text-2xl">
-                        {Number(product.price).toLocaleString("tr-TR")} TL
+
+                        {Number(
+                            product.price
+                        ).toLocaleString(
+                            "tr-TR"
+                        )}
+
+                        {" "}TL
+
                     </p>
+
 
                     {product.description && (
 
@@ -366,95 +705,122 @@ function ProductDetail() {
                     )}
 
 
-                    {/* PRODUCT DETAILS */}
+                    {/* =================================================
+                        PRODUCT DETAILS
+                    ================================================== */}
 
                     <div className="mt-8 space-y-3 text-sm">
 
                         <p>
+
                             <span className="font-medium">
                                 Marka:
                             </span>{" "}
+
                             {product.brandName}
+
                         </p>
 
+
                         <p>
+
                             <span className="font-medium">
                                 Mağaza:
                             </span>{" "}
+
                             {product.storeName}
+
                         </p>
 
+
                         <p>
+
                             <span className="font-medium">
                                 Cinsiyet:
                             </span>{" "}
+
                             {product.gender}
+
                         </p>
 
+
                         <p>
+
                             <span className="font-medium">
                                 Sezon:
                             </span>{" "}
+
                             {product.season}
+
                         </p>
 
                     </div>
 
 
-                    {/* =========================
+                    {/* =================================================
                         VARIANTS
-                    ========================== */}
+                    ================================================== */}
 
-                    <div className="mt-8">
+                    {product.variants?.length > 0 && (
 
-                        <p className="mb-3 text-sm font-medium">
-                            Varyant
-                        </p>
+                        <div className="mt-8">
 
-                        <div className="flex flex-wrap gap-3">
+                            <p className="mb-3 text-sm font-medium">
+                                Seçenek
+                            </p>
 
-                            {product.variants?.map(
-                                (variant) => (
 
-                                    <button
-                                        key={variant.id}
-                                        type="button"
-                                        onClick={() =>
-                                            setSelectedVariantId(
-                                                variant.id
-                                            )
-                                        }
-                                        disabled={
-                                            variant.stock <= 0
-                                        }
-                                        className={`border px-4 py-2 text-sm ${
-                                            selectedVariantId === variant.id
-                                                ? "border-black bg-black text-white"
-                                                : "border-gray-300"
-                                        } ${
-                                            variant.stock <= 0
-                                                ? "cursor-not-allowed opacity-40"
-                                                : ""
-                                        }`}
-                                    >
+                            <div className="flex flex-wrap gap-3">
 
-                                        {variant.color}
-                                        {" / "}
-                                        {variant.size}
+                                {product.variants.map(
+                                    (variant) => (
 
-                                    </button>
+                                        <button
+                                            key={variant.id}
+                                            type="button"
+                                            onClick={() =>
+                                                setSelectedVariantId(
+                                                    variant.id
+                                                )
+                                            }
+                                            disabled={
+                                                variant.stock <= 0
+                                            }
+                                            className={`border px-4 py-2 text-sm ${
+                                                Number(
+                                                    selectedVariantId
+                                                ) ===
+                                                Number(
+                                                    variant.id
+                                                )
+                                                    ? "border-black bg-black text-white"
+                                                    : "border-gray-300"
+                                            } ${
+                                                variant.stock <= 0
+                                                    ? "cursor-not-allowed opacity-40"
+                                                    : ""
+                                            }`}
+                                        >
 
-                                )
-                            )}
+                                            {variant.color}
+                                            {" / "}
+                                            {variant.size}
+
+                                        </button>
+
+                                    )
+                                )}
+
+                            </div>
 
                         </div>
 
-                    </div>
+                    )}
 
 
-                    {/* =========================
+                    {/* =================================================
                         QUANTITY
-                    ========================== */}
+                    ================================================== */}
 
                     <div className="mt-6">
 
@@ -462,13 +828,18 @@ function ProductDetail() {
                             Adet
                         </p>
 
+
                         <div className="flex items-center gap-4">
 
                             <button
                                 type="button"
                                 onClick={() =>
-                                    setQuantity((q) =>
-                                        Math.max(1, q - 1)
+                                    setQuantity(
+                                        (q) =>
+                                            Math.max(
+                                                1,
+                                                q - 1
+                                            )
                                     )
                                 }
                                 className="border px-4 py-2"
@@ -476,9 +847,11 @@ function ProductDetail() {
                                 -
                             </button>
 
+
                             <span>
                                 {quantity}
                             </span>
+
 
                             <button
                                 type="button"
@@ -497,14 +870,20 @@ function ProductDetail() {
                     </div>
 
 
-                    {/* =========================
+                    {/* =================================================
                         ADD TO CART
-                    ========================== */}
+                    ================================================== */}
 
                     <button
                         type="button"
                         onClick={handleAddToCart}
-                        disabled={addingToCart}
+                        disabled={
+                            addingToCart ||
+                            (
+                                product.variants?.length > 0 &&
+                                !selectedVariantId
+                            )
+                        }
                         className="mt-8 w-full bg-black px-6 py-4 text-sm font-medium text-white transition hover:bg-gray-800 disabled:opacity-50"
                     >
 
@@ -521,5 +900,6 @@ function ProductDetail() {
         </main>
     );
 }
+
 
 export default ProductDetail;
