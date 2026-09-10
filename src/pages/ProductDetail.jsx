@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@apollo/client/react";
 import { useSelector } from "react-redux";
@@ -7,7 +7,10 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getProductImage } from "../utils/image";
 
 import { GET_PRODUCT_QUERY } from "../graphqls/queries/product";
-import { ADD_TO_CART_MUTATION } from "../graphqls/queries/cart";
+import { ADD_TO_CART_MUTATION, GET_CART_QUERY } from "../graphqls/queries/cart";
+import { TRACK_ANALYTICS_EVENT_MUTATION } from "../graphqls/queries/analytics";
+import { getAnalyticsSessionId } from "../utils/analytics";
+import { showError, showSuccess } from "../utils/toast";
 
 
 function ProductDetail() {
@@ -26,6 +29,8 @@ function ProductDetail() {
     const [selectedVariantId, setSelectedVariantId] = useState(null);
     const [quantity, setQuantity] = useState(1);
     const [selectedImage, setSelectedImage] = useState(null);
+
+    const trackedProductId = useRef(null);
 
     /*
      * File Service'den gelen gerçek image URL'leri.
@@ -53,10 +58,49 @@ function ProductDetail() {
 
 
     const [addToCart, { loading: addingToCart }] =
-        useMutation(ADD_TO_CART_MUTATION);
+        useMutation(ADD_TO_CART_MUTATION, {
+            refetchQueries: [
+                {
+                    query: GET_CART_QUERY,
+                },
+            ],
+            awaitRefetchQueries: true,
+        });
+
+    const [trackAnalyticsEvent] = useMutation(
+        TRACK_ANALYTICS_EVENT_MUTATION
+    );
 
 
     const product = data?.getProduct;
+
+    useEffect(() => {
+        if (!product?.id) {
+            return;
+        }
+
+        if (trackedProductId.current === product.id) {
+            return;
+        }
+
+        trackedProductId.current = product.id;
+
+        trackAnalyticsEvent({
+            variables: {
+                input: {
+                    eventType: "VIEW_PRODUCT",
+                    productId: Number(product.id),
+                    sessionId: getAnalyticsSessionId(),
+                    value: null
+                }
+            }
+        }).catch((error) => {
+            console.error(
+                "Analytics VIEW_PRODUCT error:",
+                error
+            );
+        });
+    }, [product?.id, trackAnalyticsEvent]);
 
 
     /*
@@ -204,10 +248,7 @@ function ProductDetail() {
                 : product?.images ?? [];
 
 
-        if (
-            !images.length ||
-            !accessToken
-        ) {
+        if (!images.length) {
 
             setImageUrls({});
 
@@ -373,40 +414,51 @@ function ProductDetail() {
             return;
         }
 
-
         if (!selectedVariantId) {
-
-            alert(
+            showError(
+                null,
                 "Lütfen bir ürün seçeneği seçin."
             );
 
             return;
         }
 
-
         try {
 
             const result = await addToCart({
                 variables: {
                     input: {
-                        productVariantId:
-                        selectedVariantId,
+                        productVariantId: selectedVariantId,
                         quantity: quantity
                     }
                 }
             });
-
 
             console.log(
                 "Sepete eklendi:",
                 result.data
             );
 
+            // Analytics: ADD_TO_CART
+            try {
+                await trackAnalyticsEvent({
+                    variables: {
+                        input: {
+                            eventType: "ADD_TO_CART",
+                            productId: Number(product.id),
+                            sessionId: getAnalyticsSessionId(),
+                            value: Number(product.price) * quantity
+                        }
+                    }
+                });
+            } catch (analyticsError) {
+                console.error(
+                    "Analytics ADD_TO_CART error:",
+                    analyticsError
+                );
+            }
 
-            alert(
-                "Ürün sepete eklendi."
-            );
-
+            showSuccess("Ürün sepete eklendi.");
 
         } catch (error) {
 
@@ -415,13 +467,14 @@ function ProductDetail() {
                 error
             );
 
-
-            alert(
-                error.message ||
+            showError(
+                error,
                 "Ürün sepete eklenirken bir hata oluştu."
             );
         }
     };
+
+
 
 
     /*

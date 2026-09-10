@@ -178,10 +178,7 @@ function ProductCard({ product, badge }) {
      */
     useEffect(() => {
 
-        if (
-            !imageTokens ||
-            !accessToken
-        ) {
+        if (!imageTokens) {
             setImageUrls([]);
             setCurrentImageIndex(0);
             return;

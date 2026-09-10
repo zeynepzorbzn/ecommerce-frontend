@@ -279,3 +279,49 @@ type ProductImageResponse {
     imageToken: String!
     productId: ID!
 }
+type ProductAnalyticsResponse {
+    productId: ID!
+    storeId: ID!
+    date: Date!
+    viewCount: Long!
+    cartAddCount: Long!
+    purchaseCount: Long!
+    revenue: BigDecimal!
+    conversionRate: BigDecimal!
+    avgPrice: BigDecimal!
+    stockImpactScore: BigDecimal!
+}
+
+type StoreAnalyticsResponse {
+    storeId: ID!
+    date: Date!
+    totalViews: Long!
+    totalProductsSold: Long!
+    totalRevenue: BigDecimal!
+    totalOrders: Long!
+    avgOrderValue: BigDecimal!
+    returningCustomerRate: BigDecimal!
+    conversionRate: BigDecimal!
+}
+
+type PlatformAnalyticsResponse {
+    date: Date!
+    totalUsers: Long!
+    activeUsers: Long!
+    newUsers: Long!
+    totalRevenue: BigDecimal!
+    totalOrders: Long!
+    totalStores: Long!
+    topSellingProductId: ID
+    topStoreId: ID
+    systemConversionRate: BigDecimal!
+}
+
+extend type Query {
+    getPlatformAnalytics(date: Date!): PlatformAnalyticsResponse!
+    getStoreAnalytics(date: Date!): [StoreAnalyticsResponse!]!
+    getMyStoreAnalytics(date: Date!): StoreAnalyticsResponse!
+    getMyProductAnalytics(date: Date!): [ProductAnalyticsResponse!]!
+    getTopViewedProducts(date: Date!): [ProductAnalyticsResponse!]!
+    getTopSellingProducts(date: Date!): [ProductAnalyticsResponse!]!
+}

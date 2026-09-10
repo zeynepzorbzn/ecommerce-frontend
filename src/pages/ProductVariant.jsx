@@ -13,6 +13,7 @@ import {
     UPDATE_PRODUCT_VARIANT_MUTATION,
     DELETE_PRODUCT_VARIANT_MUTATION
 } from "../graphqls/mutations/productVariant";
+import { showError, showSuccess } from "../utils/toast";
 
 
 function ProductVariant() {
@@ -92,7 +93,7 @@ function ProductVariant() {
                     }
                 });
 
-                alert("Seçenek başarıyla güncellendi.");
+                showSuccess("Seçenek başarıyla güncellendi.");
 
             } else {
 
@@ -105,7 +106,7 @@ function ProductVariant() {
                 savedVariantId =
                     result?.data?.createProductVariant?.id;
 
-                alert("Seçenek başarıyla eklendi.");
+                showSuccess("Seçenek başarıyla eklendi.");
             }
 
             // Seçenek oluşturma/düzenleme sırasında seçilen fotoğrafı
@@ -151,8 +152,8 @@ function ProductVariant() {
                 error
             );
 
-            alert(
-                error.message ||
+            showError(
+                error,
                 "Seçenek kaydedilemedi."
             );
         }
@@ -216,7 +217,7 @@ function ProductVariant() {
 
             await refetch();
 
-            alert("Seçenek silindi.");
+            showSuccess("Seçenek silindi.");
 
         } catch (error) {
 
@@ -225,8 +226,8 @@ function ProductVariant() {
                 error
             );
 
-            alert(
-                error.message ||
+            showError(
+                error,
                 "Seçenek silinemedi."
             );
         }
@@ -271,9 +272,7 @@ function ProductVariant() {
             });
 
 
-            alert(
-                "Fotoğraf başarıyla eklendi."
-            );
+            showSuccess("Fotoğraf başarıyla eklendi.");
 
 
             // Güncel ürün/varyant bilgilerini getir
@@ -286,8 +285,8 @@ function ProductVariant() {
                 error
             );
 
-            alert(
-                error.message ||
+            showError(
+                error,
                 "Fotoğraf yüklenirken bir hata oluştu."
             );
         }

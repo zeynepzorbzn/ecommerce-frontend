@@ -8,6 +8,7 @@ import { GET_MY_ADDRESSES_QUERY } from "../graphqls/queries/address";
 import { GET_MY_PAYMENT_METHODS_QUERY } from "../graphqls/queries/paymentMethod";
 import { CREATE_ORDER_MUTATION } from "../graphqls/mutations/order";
 import AddressForm from "../components/checkout/AddressForm";
+import { showError } from "../utils/toast";
 
 function Checkout() {
 
@@ -42,17 +43,17 @@ function Checkout() {
     const handleCreateOrder = async () => {
 
         if (!cart) {
-            alert("Sepet bulunamadı.");
+            showError(null, "Sepet bulunamadı.");
             return;
         }
 
         if (!selectedAddressId) {
-            alert("Lütfen teslimat adresi seçin.");
+            showError(null, "Lütfen teslimat adresi seçin.");
             return;
         }
 
         if (!selectedPaymentMethodId) {
-            alert("Lütfen ödeme yöntemi seçin.");
+            showError(null, "Lütfen ödeme yöntemi seçin.");
             return;
         }
 
@@ -82,8 +83,8 @@ function Checkout() {
 
             console.error("CREATE ORDER ERROR:", error);
 
-            alert(
-                error.message ||
+            showError(
+                error,
                 "Sipariş oluşturulurken bir hata oluştu."
             );
 

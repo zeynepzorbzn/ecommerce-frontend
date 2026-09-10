@@ -270,6 +270,9 @@ function Header() {
 
                                     {roleName === "STORE_MANAGER" && (
                                         <>
+                                            <Link to="/store/dashboard" onClick={closeMenus} className="account-link">
+                                                Mağaza Dashboard
+                                            </Link>
                                             <Link to="/store" onClick={closeMenus} className="account-link">
                                                 Mağazam
                                             </Link>
@@ -282,7 +285,7 @@ function Header() {
                                     {roleName === "ADMIN" && (
                                         <>
                                             <Link to="/admin" onClick={closeMenus} className="account-link">
-                                                Admin Panel
+                                                Analytics Dashboard
                                             </Link>
                                             <Link to="/admin/stores" onClick={closeMenus} className="account-link">
                                                 Mağazalar

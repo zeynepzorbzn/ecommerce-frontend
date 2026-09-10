@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation } from "@apollo/client/react";
 import { CREATE_ADDRESS_MUTATION } from "../../graphqls/mutations/address";
+import { showError } from "../../utils/toast";
 
 function AddressForm({ onCreated, onCancel }) {
 
@@ -52,8 +53,8 @@ function AddressForm({ onCreated, onCancel }) {
 
             console.error("CREATE ADDRESS ERROR:", error);
 
-            alert(
-                error.message ||
+            showError(
+                error,
                 "Adres eklenirken bir hata oluştu."
             );
         }

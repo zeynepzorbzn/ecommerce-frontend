@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { GET_CART_QUERY } from "../graphqls/queries/cart";
 import {UPDATE_CART_ITEM_QUANTITY_MUTATION, REMOVE_FROM_CART_MUTATION} from "../graphqls/mutations/cart";
 import { getProductImage } from "../utils/image.js";
+import { showError, showSuccess } from "../utils/toast";
 
 
 function Cart() {
@@ -16,13 +17,27 @@ function Cart() {
 
    const [imageUrls, setImageUrls] = useState({});
 
-    const [updateQuantity] = useMutation(UPDATE_CART_ITEM_QUANTITY_MUTATION, {refetchQueries: ["GetMyCart"]});
-    const [removeFromCart] = useMutation(REMOVE_FROM_CART_MUTATION, {refetchQueries: ["GetMyCart"]});
+    const [updateQuantity] = useMutation(UPDATE_CART_ITEM_QUANTITY_MUTATION, {
+        refetchQueries: [
+            {
+                query: GET_CART_QUERY,
+            },
+        ],
+        awaitRefetchQueries: true,
+    });
+    const [removeFromCart] = useMutation(REMOVE_FROM_CART_MUTATION, {
+        refetchQueries: [
+            {
+                query: GET_CART_QUERY,
+            },
+        ],
+        awaitRefetchQueries: true,
+    });
     const cart = data?.getMyCart;
 
     useEffect(() => {
 
-        if (!cart?.items?.length || !accessToken) {
+        if (!cart?.items?.length) {
             setImageUrls({});
             return;
         }
@@ -76,6 +91,11 @@ function Cart() {
                 "Quantity update error:",
                 error
             );
+
+            showError(
+                error,
+                "Sepet miktarı güncellenemedi."
+            );
         }
     };
     const handleRemove = async (cartItemId) => {
@@ -85,11 +105,18 @@ function Cart() {
                 variables: {
                     cartItemId
                 }});
+
+            showSuccess("Ürün sepetten çıkarıldı.");
         } catch (error) {
 
             console.error(
                 "Ürün sepetten silinemedi:",
                 error
+            );
+
+            showError(
+                error,
+                "Ürün sepetten çıkarılamadı."
             );
         }
     };

@@ -10,15 +10,27 @@ export const uploadFile = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await axios.post(
-        `${FILE_SERVICE_URL}/upload`,
-        formData,
-        {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        }
-    );
+    try {
+        const response = await axios.post(
+            `${FILE_SERVICE_URL}/upload`,
+            formData,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
 
-    return response.data;
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 401 && token) {
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
+            localStorage.removeItem("roleName");
+            sessionStorage.setItem("sessionExpired", "true");
+            window.location.assign("/login");
+        }
+
+        throw error;
+    }
 };

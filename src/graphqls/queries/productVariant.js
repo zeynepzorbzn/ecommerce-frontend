@@ -25,8 +25,6 @@ export const GET_PRODUCT_VARIANT_BY_ID_QUERY = gql`
         }
     }
 `;
-import { gql } from "@apollo/client";
-
 export const CREATE_PRODUCT_VARIANT_MUTATION = gql`
     mutation CreateProductVariant($input: ProductVariantInput!) {
         createProductVariant(input: $input) {

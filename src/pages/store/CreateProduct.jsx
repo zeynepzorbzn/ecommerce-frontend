@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@apollo/client/react";
+import { showError, showSuccess } from "../../utils/toast";
 import { useNavigate } from "react-router-dom";
 import { uploadFile } from "../../services/fileService";
 import { ADD_PRODUCT_IMAGE_MUTATION } from "../../graphqls/mutations/productImage";
@@ -122,7 +123,7 @@ function CreateProduct() {
                 });
             }
 
-            alert("Ürün başarıyla oluşturuldu.");
+            showSuccess("Ürün başarıyla oluşturuldu.");
 
             navigate("/store/products");
 
@@ -133,8 +134,8 @@ function CreateProduct() {
                 error
             );
 
-            alert(
-                error.message ||
+            showError(
+                error,
                 "Ürün oluşturulamadı."
             );
         }

@@ -1,6 +1,7 @@
 import { useQuery } from "@apollo/client/react";
 import { Link } from "react-router-dom";
 import { useMutation } from "@apollo/client/react";
+import { showError, showSuccess } from "../../utils/toast";
 
 import {DELETE_PRODUCT_MUTATION} from "../../graphqls/mutations/product";
 
@@ -131,10 +132,11 @@ function StoreProduct() {
                                                 }
                                             });
 
+                                            showSuccess("Ürün silindi.");
                                             window.location.reload();
 
                                         } catch (error) {
-                                            alert(error.message);
+                                            showError(error, "Ürün silinemedi.");
                                         }
                                     }}
                                     className="border border-red-500 px-4 py-2 text-sm text-red-500"

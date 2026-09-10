@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { ArrowRight, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -9,6 +9,11 @@ import ProductCard from "../components/home/ProductCard";
 import { GET_CATEGORIES_QUERY } from "../graphqls/queries/category";
 import { GET_PRODUCTS_QUERY } from "../graphqls/queries/product";
 import { getProductImage } from "../utils/image.js";
+import {
+    GET_TOP_SELLING_PRODUCTS_ANALYTICS_QUERY,
+    GET_TOP_VIEWED_PRODUCTS_ANALYTICS_QUERY,
+} from "../graphqls/queries/analytics";
+import { getYesterdayDateString } from "../utils/analyticsDate";
 
 function ProductSlider({ title, kicker, products, badge }) {
     const [currentSlide, setCurrentSlide] = useState(0);
@@ -212,6 +217,42 @@ function Home() {
 
     const categories = categoriesData?.getCategories ?? [];
     const products = productsData?.getProducts ?? [];
+    const analyticsDate = getYesterdayDateString();
+
+    const {
+        data: viewedAnalyticsData,
+    } = useQuery(GET_TOP_VIEWED_PRODUCTS_ANALYTICS_QUERY, {
+        variables: { date: analyticsDate },
+    });
+
+    const {
+        data: sellingAnalyticsData,
+    } = useQuery(GET_TOP_SELLING_PRODUCTS_ANALYTICS_QUERY, {
+        variables: { date: analyticsDate },
+    });
+
+    const productMap = new Map(
+        products.map((product) => [String(product.id), product])
+    );
+
+    const viewedAnalytics = viewedAnalyticsData?.getTopViewedProducts ?? [];
+    const sellingAnalytics = sellingAnalyticsData?.getTopSellingProducts ?? [];
+
+    const mostViewedProducts = viewedAnalytics
+        .map((analytics) => productMap.get(String(analytics.productId)))
+        .filter(Boolean);
+
+    const bestSellingProducts = sellingAnalytics
+        .map((analytics) => productMap.get(String(analytics.productId)))
+        .filter(Boolean);
+
+    const featuredProducts = mostViewedProducts.length > 0
+        ? mostViewedProducts
+        : [...products].reverse();
+
+    const bestSellingDisplayProducts = bestSellingProducts.length > 0
+        ? bestSellingProducts
+        : featuredProducts;
 
     const heroProducts = products.slice(0, 4);
 
@@ -284,13 +325,13 @@ function Home() {
                     <div className="relative mx-auto h-[430px] w-full max-w-[520px] md:h-[500px]">
                         <div className="absolute inset-4 rotate-[-4deg] rounded-[2rem] bg-white/60 shadow-2xl" />
                         <div className="absolute inset-0 overflow-hidden rounded-[2rem] bg-gradient-to-br from-gray-200 to-gray-300 shadow-2xl">
-                             (
+                            {heroProduct ? (
                                 <HeroImage product={heroProduct} />
                             ) : (
                                 <div className="flex h-full items-center justify-center text-xs uppercase tracking-[0.3em] text-gray-500">
                                     ZEY'Z COLLECTION
                                 </div>
-                            )
+                            )}
 
                             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-7 pt-28 text-white">
                                 <p className="text-[10px] uppercase tracking-[0.25em] text-white/70">
@@ -338,11 +379,20 @@ function Home() {
                     </div>
 
                     <ProductSlider
-                        kicker="Seçtiklerimiz"
+                        kicker="Analytics"
                         title="Öne Çıkanlar"
-                        products={[...products].reverse()}
-                        badge="Öne Çıkan"
+                        products={featuredProducts}
+                        badge="Çok Görüntülenen"
                     />
+
+                    <div className="bg-gray-50">
+                        <ProductSlider
+                            kicker="Analytics"
+                            title="En Çok Satanlar"
+                            products={bestSellingDisplayProducts}
+                            badge="Çok Satan"
+                        />
+                    </div>
                 </>
             )}
 
@@ -425,7 +475,7 @@ function HeroImage({ product }) {
         )?.imageToken;
 
     useEffect(() => {
-        if (!imageToken || !accessToken) {
+        if (!imageToken) {
             setImageUrl(null);
             return;
         }

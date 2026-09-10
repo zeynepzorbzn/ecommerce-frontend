@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 import { REGISTER_MUTATION } from "../graphqls/mutations/auth.js";
 import { login } from "../features/auth/authSlice.js";
+import { showError, showSuccess } from "../utils/toast";
 
 function Register() {
 
@@ -44,13 +45,15 @@ function Register() {
                 login({
                     accessToken: data.register.accessToken,
                     refreshToken: data.register.refreshToken,
-                    roleName: data.roleName,
+                    roleName: data.register.roleName,
                 })
             );
+            showSuccess("Hesabınız başarıyla oluşturuldu.");
             navigate("/myAccount");
 
         } catch (error) {
             console.error("Register hatası:", error);
+            showError(error, "Kayıt oluşturulamadı. Bilgilerinizi kontrol edip tekrar deneyin.");
         }
     };
 

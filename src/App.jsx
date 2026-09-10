@@ -16,7 +16,6 @@ import Categories from "./pages/Categories";
 import Checkout from "./pages/Checkout";
 import PaymentPage from "./pages/PaymentPage";
 import Store from "./pages/Store";
-import StoreManager from "./pages/StoreManager";
 import StoreDashboard from "./pages/store/StoreDashboard";
 import StoreProduct from "./pages/store/StoreProduct";
 import CreateProduct from "./pages/store/CreateProduct";
@@ -31,6 +30,7 @@ import AdminBrands from "./pages/AdminBrands";
 import AdminCategories from "./pages/AdminCategories";
 import Stores from "./pages/Stores";
 import Favorites from "./pages/Favorites";
+import { Toaster } from "react-hot-toast";
 
 
 
@@ -38,6 +38,25 @@ function App() {
   return (
       <BrowserRouter>
       <div className="min-h-screen bg-white text-gray-900">
+
+          <Toaster
+              position="top-right"
+              toastOptions={{
+                  duration: 3500,
+                  style: {
+                      borderRadius: "14px",
+                      padding: "12px 16px",
+                      fontSize: "14px",
+                      maxWidth: "380px",
+                  },
+                  success: {
+                      duration: 3000,
+                  },
+                  error: {
+                      duration: 4500,
+                  },
+              }}
+          />
 
           <Header />
           <Routes>

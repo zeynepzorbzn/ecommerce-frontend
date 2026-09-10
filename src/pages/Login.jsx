@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@apollo/client/react";
 import {useDispatch} from "react-redux";
 import {LOGIN_MUTATION} from "../graphqls/mutations/auth.js";
 import { login } from "../features/auth/authSlice";
 import {Link} from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { showError, showSuccess, showInfo } from "../utils/toast";
 
 function Login() {
 
@@ -13,6 +14,15 @@ function Login() {
     const [loginMutation, { loading, error }] = useMutation(LOGIN_MUTATION);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const sessionExpired = sessionStorage.getItem("sessionExpired");
+
+        if (sessionExpired === "true") {
+            sessionStorage.removeItem("sessionExpired");
+            showInfo("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
+        }
+    }, []);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -34,10 +44,12 @@ function Login() {
                     roleName: data.login.roleName,
                 })
             );
-            navigate("/MyAccount");
+            showSuccess("Giriş başarılı. Hoş geldiniz.");
+            navigate("/myAccount");
 
         } catch (error) {
             console.error("Login hatası:", error);
+            showError(error, "Email veya şifre hatalı.");
         }
     };
     return (

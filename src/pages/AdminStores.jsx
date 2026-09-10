@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { GET_STORES_QUERY } from "../graphqls/queries/store";
 import { GET_USERS_QUERY } from "../graphqls/queries/user";
 import { CREATE_STORE_MUTATION } from "../graphqls/mutations/store";
+import { showError, showSuccess } from "../utils/toast";
 
 function AdminStores() {
 
@@ -65,7 +66,7 @@ function AdminStores() {
                 }
             });
 
-            alert("Mağaza başarıyla oluşturuldu.");
+            showSuccess("Mağaza başarıyla oluşturuldu.");
 
             setForm({
                 name: "",
@@ -83,8 +84,8 @@ function AdminStores() {
         } catch (error) {
             console.error("CREATE STORE ERROR:", error);
 
-            alert(
-                error.message ||
+            showError(
+                error,
                 "Mağaza oluşturulamadı."
             );
         }

@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from "@apollo/client/react";
+import { showError, showSuccess } from "../../utils/toast";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -96,12 +97,12 @@ function EditProduct() {
                 }
             });
 
-            alert("Ürün güncellendi.");
+            showSuccess("Ürün güncellendi.");
             navigate("/store/products");
 
         } catch (error) {
             console.error(error);
-            alert(error.message);
+            showError(error, "Ürün güncellenemedi.");
         }
     };
 

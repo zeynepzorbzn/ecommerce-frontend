@@ -47,7 +47,7 @@ const isValidImageBlob = (blob) =>
  * Component'ler URL.revokeObjectURL() çağırmamalıdır.
  */
 export const getProductImage = async (imageToken, accessToken) => {
-    if (!imageToken || !accessToken) {
+    if (!imageToken) {
         return null;
     }
 
@@ -69,9 +69,11 @@ export const getProductImage = async (imageToken, accessToken) => {
         .get(
             `${FILE_SERVICE_URL}/download/${encodeURIComponent(imageToken)}`,
             {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                },
+                headers: accessToken
+                    ? {
+                        Authorization: `Bearer ${accessToken}`,
+                    }
+                    : {},
                 responseType: "blob",
             }
         )
@@ -94,14 +96,24 @@ export const getProductImage = async (imageToken, accessToken) => {
             return objectUrl;
         })
         .catch((error) => {
+            const status = error.response?.status;
+
             console.error(
                 "FILE SERVICE IMAGE ERROR:",
                 {
                     imageToken,
-                    status: error.response?.status,
+                    status,
                     message: error.message,
                 }
             );
+
+            if (status === 401 && accessToken) {
+                localStorage.removeItem("accessToken");
+                localStorage.removeItem("refreshToken");
+                localStorage.removeItem("roleName");
+                sessionStorage.setItem("sessionExpired", "true");
+                window.location.assign("/login");
+            }
 
             return null;
         })

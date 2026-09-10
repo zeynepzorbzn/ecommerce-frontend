@@ -3,6 +3,7 @@ import { useMutation, useQuery } from "@apollo/client/react";
 
 import { GET_MY_PAYMENT_METHODS_QUERY } from "../graphqls/queries/paymentMethod";
 import { CREATE_PAYMENT_METHOD_MUTATION } from "../graphqls/mutations/paymentMethod";
+import { showError, showSuccess } from "../utils/toast";
 
 function PaymentPage() {
     const {
@@ -57,12 +58,12 @@ function PaymentPage() {
             cardNumber.replace(/\s/g, "");
 
         if (cleanCardNumber.length !== 16) {
-            alert("Kart numarası 16 haneli olmalıdır.");
+            showError(null, "Kart numarası 16 haneli olmalıdır.");
             return;
         }
 
         if (!cardHolder.trim()) {
-            alert("Kart sahibi bilgisi girilmelidir.");
+            showError(null, "Kart sahibi bilgisi girilmelidir.");
             return;
         }
 
@@ -74,12 +75,12 @@ function PaymentPage() {
             month < 1 ||
             month > 12
         ) {
-            alert("Geçerli bir son kullanma ayı girin.");
+            showError(null, "Geçerli bir son kullanma ayı girin.");
             return;
         }
 
         if (!year) {
-            alert("Geçerli bir son kullanma yılı girin.");
+            showError(null, "Geçerli bir son kullanma yılı girin.");
             return;
         }
 
@@ -103,15 +104,15 @@ function PaymentPage() {
             resetForm();
             setShowForm(false);
 
-            alert("Ödeme yöntemi başarıyla eklendi.");
+            showSuccess("Ödeme yöntemi başarıyla eklendi.");
         } catch (error) {
             console.error(
                 "CREATE PAYMENT METHOD ERROR:",
                 error
             );
 
-            alert(
-                error?.message ||
+            showError(
+                error,
                 "Ödeme yöntemi eklenirken bir hata oluştu."
             );
         } finally {
