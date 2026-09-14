@@ -1,4 +1,4 @@
-# Ecommerce Frontend
+# ZEY'Z E-commerce Frontend
 
 ZEYZ-Ecommerce projesinin React tabanlı kullanıcı arayüzüdür.
 
