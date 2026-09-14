@@ -1,16 +1,55 @@
-# React + Vite
+# Ecommerce Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+ZEYZ-Ecommerce projesinin React tabanlı kullanıcı arayüzüdür.
 
-Currently, two official plugins are available:
+Frontend uygulaması; ürün listeleme, ürün detayları, sepet, checkout, kullanıcı hesabı, mağaza yönetimi ve yönetim panelleri gibi temel e-ticaret işlevlerini sunar.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## ✨ Özellikler
 
-## React Compiler
+- Ürün listeleme ve ürün detay sayfaları
+- Kategori, marka ve mağaza bazlı ürün görüntüleme
+- Kullanıcı kayıt ve giriş işlemleri
+- JWT tabanlı oturum yönetimi
+- Sepet yönetimi
+- Checkout ve sipariş oluşturma
+- Kullanıcı profil ve adres yönetimi
+- Mağaza yönetim paneli
+- Admin dashboard
+- Ürün, kategori ve varyant yönetimi
+- Analytics dashboardları
+- Toast bildirimleri ve hata yönetimi
+- Responsive kullanıcı arayüzü
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠️ Kullanılan Teknolojiler
 
-## Expanding the ESLint configuration
+- React
+- Vite
+- React Router DOM
+- Apollo Client
+- GraphQL
+- Redux Toolkit
+- Axios
+- Tailwind CSS
+- Lucide React
+- React Hot Toast
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🚀 Çalıştırma
+
+Projeyi klonladıktan sonra bağımlılıkları yükleyin:
+
+```bash
+npm install
+```
+
+Geliştirme sunucusunu başlatın:
+
+```bash
+npm run dev
+```
+
+## 🔗 İlgili Projeler
+
+- [Ana Proje](https://github.com/zeynepzorbzn/ZEYZ-Ecommerce)
+- [Backend](https://github.com/zeynepzorbzn/ecommerce-backend)
+- [Analytics Service](https://github.com/zeynepzorbzn/ecommerce-analyticsService)
+- [File Service](https://github.com/zeynepzorbzn/e-commerce-file-service)
